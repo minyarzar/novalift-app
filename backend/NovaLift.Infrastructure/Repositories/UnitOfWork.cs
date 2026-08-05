@@ -1,67 +1,70 @@
-using Microsoft.EntityFrameworkCore;
+using NovaLift.Domain.Entities;
 using NovaLift.Domain.Interfaces;
 using NovaLift.Infrastructure.Data;
 
 namespace NovaLift.Infrastructure.Repositories;
 
-public class Repository<T> : IRepository<T> where T : class
+public class UnitOfWork : IUnitOfWork
 {
-    protected readonly AppDbContext _context;
-    protected readonly DbSet<T> _dbSet;
+    private readonly AppDbContext _context;
 
-    public Repository(AppDbContext context)
+
+    public IRepository<User> Users { get; }
+    public IRepository<Wallet> Wallets { get; }
+    public IRepository<Transaction> Transactions { get; }
+    public IRepository<Product> Products { get; }
+    public IRepository<TaskItem> Tasks { get; }
+    public IRepository<TaskTemplate> TaskTemplates { get; }
+
+
+    public IRepository<Order> Orders { get; }
+    public IRepository<Country> Countries { get; }
+    public IRepository<Language> Languages { get; }
+    public IRepository<VipConfig> VipConfigs { get; }
+    public IRepository<Referral> Referrals { get; }
+    public IRepository<Commission> Commissions { get; }
+    public IRepository<Banner> Banners { get; }
+    public IRepository<Announcement> Announcements { get; }
+    public IRepository<PaymentMethodConfig> PaymentMethodConfigs { get; }
+    public IRepository<Setting> Settings { get; }
+    public IRepository<AuditLog> AuditLogs { get; }
+
+
+    public UnitOfWork(AppDbContext context)
     {
         _context = context;
-        _dbSet = context.Set<T>();
+
+
+        Users = new Repository<User>(_context);
+        Wallets = new Repository<Wallet>(_context);
+        Transactions = new Repository<Transaction>(_context);
+        Products = new Repository<Product>(_context);
+        Tasks = new Repository<TaskItem>(_context);
+        TaskTemplates = new Repository<TaskTemplate>(_context);
+
+
+        Orders = new Repository<Order>(_context);
+        Countries = new Repository<Country>(_context);
+        Languages = new Repository<Language>(_context);
+        VipConfigs = new Repository<VipConfig>(_context);
+        Referrals = new Repository<Referral>(_context);
+        Commissions = new Repository<Commission>(_context);
+        Banners = new Repository<Banner>(_context);
+        Announcements = new Repository<Announcement>(_context);
+        PaymentMethodConfigs = new Repository<PaymentMethodConfig>(_context);
+        Settings = new Repository<Setting>(_context);
+        AuditLogs = new Repository<AuditLog>(_context);
     }
 
 
-    public virtual async Task<T?> GetByIdAsync(int id)
+    public async Task<int> SaveChangesAsync()
     {
-        return await _dbSet.FindAsync(id);
+        return await _context.SaveChangesAsync();
     }
 
 
-    public virtual async Task<List<T>> GetAllAsync()
+    public void Dispose()
     {
-        return await _dbSet.AsNoTracking().ToListAsync();
-    }
-
-
-    public virtual async Task<T> AddAsync(T entity)
-    {
-        await _dbSet.AddAsync(entity);
-        await _context.SaveChangesAsync();
-
-        return entity;
-    }
-
-
-    public virtual async Task AddRangeAsync(IEnumerable<T> entities)
-    {
-        await _dbSet.AddRangeAsync(entities);
-        await _context.SaveChangesAsync();
-    }
-
-
-    public virtual async Task UpdateAsync(T entity)
-    {
-        _dbSet.Update(entity);
-        await _context.SaveChangesAsync();
-    }
-
-
-    public virtual async Task DeleteAsync(T entity)
-    {
-        _dbSet.Remove(entity);
-        await _context.SaveChangesAsync();
-    }
-
-
-    public virtual async Task<bool> ExistsAsync(int id)
-    {
-        var entity = await _dbSet.FindAsync(id);
-
-        return entity != null;
+        _context.Dispose();
     }
 }
